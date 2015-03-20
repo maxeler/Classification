@@ -1,0 +1,114 @@
+package radius;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.Count;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.Count.Counter;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.memory.Memory;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEVar;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
+
+
+class radiusKernel extends Kernel {
+
+    radiusKernel(KernelParameters parameters,int cols,int Roms) {
+
+        super(parameters);
+
+        //Declare custom type
+	DFEType type = dfeFloat(8,24);
+
+        //Declare constants for the purpose of data type agreements
+	DFEVar zero = constant.var(type, 0.0);
+	DFEVar address = constant.var(dfeUInt(12),0);
+
+        //Declare scalar input of columns in data cluster matrix
+	DFEVar N = io.scalarInput("N", dfeUInt(32));   	
+        //Declare scalar input of rows in data cluster matrix
+        DFEVar C = io.scalarInput("C", dfeUInt(32));   	
+        //Declare scalar input of number of input data points
+        DFEVar P = io.scalarInput("P", dfeUInt(32));   	
+        //Declare scalar input of number of mapped Roms
+        DFEVar R = io.scalarInput("R", dfeUInt(32));   
+	
+	//Declare custom vector types
+	DFEVectorType<DFEVar> inVectorType = new DFEVectorType<DFEVar>(type,cols);
+	DFEVectorType<DFEVar> arrayVectorType = new DFEVectorType<DFEVar>(type,Roms*2);
+	DFEVectorType<DFEVar> radVectorType = new DFEVectorType<DFEVar>(type,Roms/2);
+
+        //Declare complex counter that counts up until every data point from the matrix has been loaded onto the DFE from FMem
+	Count.Params p2 = control.count.makeParams(32).withMax((N*C)/(Roms*2));
+	Counter count2 = control.count.makeCounter(p2);
+	DFEVar cntR = count2.getCount();
+
+	//Inputs of input data point and radii of data clusters
+	DFEVector<DFEVar> inVect = io.input("a", inVectorType, cntR === 0);
+
+	//Declare individual mapped Roms to stream data cluster matrix from, altering their index so they will be read in
+	//the correct order
+	List<Memory<DFEVar>> memories = new ArrayList<Memory<DFEVar>>(Roms + Roms/4);
+	for (int i = 0; i < Roms + Roms/4; ++i) {
+	    // TODO: is there any way NOT harcode the value "8" below? It is P*N/R
+	    Memory<DFEVar> mappedRom = mem.alloc(type,3128);
+	    if (i<10)
+		mappedRom.mapToCPU("mappedRom" + "00" +i);
+	    else
+		if (i<100)
+		    mappedRom.mapToCPU("mappedRom" +"0" +i);
+		else
+		    mappedRom.mapToCPU("mappedRom" + i);
+	    memories.add(mappedRom);
+	}
+
+        //Declare array to load data cluster matrix to
+	DFEVector<DFEVar> data = arrayVectorType.newInstance(this); 	
+        //Declare array for Euclidean distances
+        DFEVector<DFEVar> dist = radVectorType.newInstance(this);   		
+        //Declare array for intermediate values for Euclidean distance
+        DFEVector<DFEVar> s = arrayVectorType.newInstance(this); 
+        //Declare output array of indices and -1s
+        DFEVector<DFEVar> total = radVectorType.newInstance(this); 
+	DFEVector<DFEVar> radcheck = radVectorType.newInstance(this);
+
+	//Declare offset value of appropriate type to correctly load data center cluster onto array
+	DFEVar place = 2*cntR;
+	DFEVar offset = place.cast(dfeUInt(12));
+
+	//Each mapped Rom loads its first two values into data array, and then the next two values for each subsequent cycle
+	for(int i=0; i < Roms; i++)
+	    for(int j = 0 ; j < 2 ; j++)
+		data[j + 2*i] <== memories.get(i).read(address+offset+j);
+
+
+	//Same initialization method, except for radii
+	for(int i= Roms; i < Roms + Roms/4; i++)
+	    for(int j = 0 ; j < 2 ; j++)
+		radcheck[j + 2*(i-Roms)] <== memories.get(i).read(address+offset+j);
+
+	//Determine the squared difference between each data point in the matrix and its corresponding input element
+        for(int i = 0 ; i < Roms/2 ; i ++)
+	    for(int j = 0 ; j < cols ; j++)
+		s[j + i*cols] <== (inVect[j]-data[j + cols*i])*(inVect[j]-data[j + cols*i]);
+
+        // Compute the sum of each row of squared differences
+	DFEVar runsum = type.newInstance(this);
+        for(int i = 0 ; i < Roms/2 ; i++) {
+	    runsum = zero;
+	    for (int j=0; j<cols; j++) runsum += s[j + cols*i];
+	    dist[i] <== runsum;
+        }
+
+	DFEVar section = cntR.cast(type);
+	// If the distance squared is less than the cluster radius squared, update output with the index, if not, -1
+	for(int i = 0 ; i < Roms/2 ; i++) total[i] <== dist[i] < radcheck[i] ? section*(Roms/2) + i : -1;
+
+	//Output
+	io.output("c",total, radVectorType);
+    }
+
+}

@@ -1,0 +1,68 @@
+package radius;
+
+import com.maxeler.maxcompiler.v2.managers.BuildConfig;
+import com.maxeler.maxcompiler.v2.managers.BuildConfig.Effort;
+import com.maxeler.maxcompiler.v2.managers.custom.CustomManager;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.KernelBlock;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.CPUTypes;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.EngineInterface;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.InterfaceParam;
+
+public class radiusManager extends CustomManager {
+
+    private static final String s_kernelName = "radiusKernel";
+    private static final int cols = 4;
+    private static final int Roms = 128;
+
+
+    public radiusManager(radiusEngineParameters engineParameters) {
+
+	super(engineParameters);
+
+	KernelBlock block = addKernel(new radiusKernel(makeKernelParameters(s_kernelName),cols, Roms));
+
+	for (String inputName: block.getAllInputs())
+	    block.getInput(inputName).connect(addStreamFromCPU(inputName));
+
+	for (String outputName: block.getAllOutputs())
+	    addStreamToCPU(outputName).connect(block.getOutput(outputName));
+
+	createSLiCinterface(modeDefault());
+
+	configBuild(engineParameters);
+    }
+
+    private static EngineInterface modeDefault() {
+	EngineInterface engine_interface = new EngineInterface();
+	CPUTypes type = CPUTypes.FLOAT;
+	int size = type.sizeInBytes();
+
+	InterfaceParam  N    = engine_interface.addParam("N", CPUTypes.INT);
+	InterfaceParam  P    = engine_interface.addParam("P", CPUTypes.INT);
+	InterfaceParam  C    = engine_interface.addParam("C", CPUTypes.INT);
+	InterfaceParam  R   = engine_interface.addParam("R", CPUTypes.INT);
+
+	engine_interface.setScalar(s_kernelName, "N", N);
+	engine_interface.setScalar(s_kernelName, "P", P);
+	engine_interface.setScalar(s_kernelName, "C", C);
+	engine_interface.setScalar(s_kernelName, "R", R);
+
+	engine_interface.setTicks(s_kernelName, P*((N*C)/(R*2)));
+	engine_interface.setStream("a",   type, N * P * size);
+	engine_interface.setStream("c", type, C * P * size);
+	return engine_interface;
+    }
+
+    private void configBuild(radiusEngineParameters params) {
+	BuildConfig buildConfig = getBuildConfig();
+	buildConfig.setMPPRCostTableSearchRange(params.getMPPRStartCT(), params.getMPPREndCT());
+	buildConfig.setMPPRParallelism(params.getMPPRThreads());
+	buildConfig.setMPPRRetryNearMissesThreshold(params.getMPPRRetryThreshold());
+	buildConfig.setBuildEffort(Effort.VERY_HIGH);
+    }
+
+    public static void main(String[] args) {
+	radiusManager manager = new radiusManager(new radiusEngineParameters(args));
+	manager.build();
+    }
+}

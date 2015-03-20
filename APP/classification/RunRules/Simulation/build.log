@@ -1,0 +1,96 @@
+Wed 14:56: ########################################## 
+Wed 14:56: Compiling.
+Wed 14:56: ########################################## 
+
+Wed 14:56: MaxCompiler version: 2014.1.1.
+Wed 14:56: Build Simulation run rule for Final2_Radius start time: Wed Dec 17 14:56:41 GMT 2014.
+Wed 14:56: Project location: /home/azaidi/workspace/MaxApp/Classification.
+Wed 14:56: Detailed build log: /home/azaidi/workspace/MaxApp/Classification/RunRules/Simulation/build.log.
+
+Wed 14:56: Compiling Engine Code.
+Wed 14:56: Building radius.max file. 
+Wed 14:56: Setting environment variable:
+Wed 14:56: MAXCOMPILER_BUILD_DIR : /network-scratch/azaidi/maxdc_builds/
+Wed 14:56: MAX_BUILDPARAMS : DFEModel='MAIA' target='DFE_SIM' maxFileName='radius'  
+Wed 14:56: Building output:
+Wed 14:56: MaxCompiler version: 2014.1.1
+Wed 14:56: Build "radius" start time: Wed Dec 17 14:56:46 GMT 2014
+Wed 14:56: Main build process running as user azaidi on host gust.office.maxeler.com
+Wed 14:56: Build location: /network-scratch/azaidi/maxdc_builds/17-12-14/radius_MAIA_DFE_SIM
+Wed 14:56: Detailed build log available in "_build.log"
+Wed 14:56: 
+Wed 14:56: ENGINE BUILD PARAMETERS
+Wed 14:56: 	 Build name: radius_MAIA_DFE_SIM
+Wed 14:56: 	   DFEModel: MAIA               
+Wed 14:56: 	maxFileName: radius             
+Wed 14:56: 	     target: DFE_SIM            
+Wed 14:56: 	 enableMPCX: false              
+Wed 14:56: Instantiating kernel "radiusKernel"
+Wed 14:56: WARNING: Floating-point casts ignore set rounding mode and use TONEAREVEN rounding only.
+Wed 14:56: 
+Wed 14:56: Compiling kernel "radiusKernel"
+Wed 14:56: WARNING: Warning (UNCONNECTED_DESIGN_ELEMENT):
+Wed 14:56: WARNING: Unconnected elements in design 'radiusKernel'
+Wed 14:56: WARNING: details in : /network-scratch/azaidi/maxdc_builds/17-12-14/radius_MAIA_DFE_SIM/scratch/radiusKernel_graph_warnings.txt
+Wed 14:57: Running back-end simulation build (3 phases)
+Wed 14:57: (1/3) - Prepare MaxFile Data (GenerateMaxFileDataFile)
+Wed 14:57: (2/3) - Compile Simulation Modules (SimCompilePass)
+Wed 14:58: (3/3) - Generate MaxFile (AddSimObjectToMaxFilePass)
+Wed 14:58: MaxFile: /network-scratch/azaidi/maxdc_builds/17-12-14/radius_MAIA_DFE_SIM/results/radius.max (MD5Sum: 30fd183d12825fceaa08ab9d1750a569)
+Wed 14:58: Build completed: Wed Dec 17 14:58:06 GMT 2014 (took 1 min, 19 secs)
+Wed 14:58: Executing command:
+Wed 14:58: cp /home/azaidi/workspace/MaxApp/Classification/RunRules/Simulation/maxfiles/radius.h /home/azaidi/workspace/MaxApp/Classification/RunRules/Simulation/include/radius.h 
+Wed 14:58: Command output:
+Wed 14:58: Building: radius.max file finished.
+Wed 14:58: Engine build finished.
+Wed 14:58: Compiling CPU Code.
+Wed 14:58: Run CPU project make files updating
+Wed 14:58: Executing command:
+Wed 14:58: java -jar /network-raid/opt/maxcompiler-2014.1.1/lib/MaxIDE/projectAdmin.jar -u /home/azaidi/workspace/MaxApp/Classification Simulation 
+Wed 14:58: Command output:
+
+Wed 14:58: MaxCompiler Project Admin Tool Version 2014.1.1
+Wed 14:58:  Copyright Maxeler Technologies 2010 - 2014. All rights reserved.
+Wed 14:58: Handler version 2
+Wed 14:58: Updating RunRule dependent Makefiles for RunRule 'Simulation'
+Wed 14:58: 	Updating: Simulation
+Wed 14:58: Found makefiles: 1
+Wed 14:58: 	Updated: Simulation
+Wed 14:58: Run CPU make.
+Wed 14:58: make RUNRULE=Simulation 
+Wed 14:58: Command output:
+Wed 14:58: make -f Makefile.rules build
+Wed 14:58: make[1]: Entering directory `/home/azaidi/workspace/MaxApp/Classification/CPUCode'
+Wed 14:58: set -e; rm -f ../RunRules/Simulation/objects/c/radiusCpuCode.d ;                                                             \
+Wed 14:58: 	  cc -M -std=gnu99 -g -O0 -Wall -Wextra -I../RunRules/Simulation/include  -I '/network-raid/opt/maxcompiler-2014.1.1/include/slic'  -Wno-error radiusCpuCode.c > ../RunRules/Simulation/objects/c/radiusCpuCode.d.$$ ;                                 \
+Wed 14:58:       sed 's,\(radiusCpuCode\)\.o[ :]*,../RunRules/Simulation/objects/c/\1.o ../RunRules/Simulation/objects/c/radiusCpuCode.d : ,g' < ../RunRules/Simulation/objects/c/radiusCpuCode.d.$$ > ../RunRules/Simulation/objects/c/radiusCpuCode.d; \
+Wed 14:58:       rm -f ../RunRules/Simulation/objects/c/radiusCpuCode.d.$$
+Wed 14:58: make[1]: Leaving directory `/home/azaidi/workspace/MaxApp/Classification/CPUCode'
+Wed 14:58: make[1]: Entering directory `/home/azaidi/workspace/MaxApp/Classification/CPUCode'
+Wed 14:58: "/network-raid/opt/maxcompiler-2014.1.1/bin/sliccompile" ../RunRules/Simulation/maxfiles/radius.max ../RunRules/Simulation/objects/maxfiles/slic_radius.o
+Wed 14:58: Processing maxfile for MAIA_SIM from '../RunRules/Simulation/maxfiles/radius.max'.
+Wed 14:58: gcc -std=gnu99 -Wall -Werror -fno-guess-branch-probability -frandom-seed=foo -Wno-unused-variable -Wno-unused-function -fPIC -I /network-raid/opt/maxcompiler-2014.1.1/include/slic -DMAXFILE_INC="/home/azaidi/workspace/MaxApp/Classification/CPUCode/../RunRules/Simulation/maxfiles/radius.max" -DSLIC_NO_DESTRUCTORS -c /network-raid/opt/maxcompiler-2014.1.1/src/slicinterface/MaxFileInit.c -o slic_radius.o 
+Wed 14:58: Copying .max file C object into '/home/azaidi/workspace/MaxApp/Classification/CPUCode/../RunRules/Simulation/objects/maxfiles'
+Wed 14:58: cc -std=gnu99 -g -O0 -Wall -Wextra -I../RunRules/Simulation/include  -I '/network-raid/opt/maxcompiler-2014.1.1/include/slic'  -c radiusCpuCode.c -o ../RunRules/Simulation/objects/c/radiusCpuCode.o
+Wed 14:58: radiusCpuCode.c: In function 'main':
+Wed 14:58: radiusCpuCode.c:119: warning: unused variable 'clock_t'
+Wed 14:58: cc -std=gnu99 -g -O0 -Wall -Wextra -I../RunRules/Simulation/include  -I '/network-raid/opt/maxcompiler-2014.1.1/include/slic'  -o ../RunRules/Simulation/binaries/radius ../RunRules/Simulation/objects/maxfiles/slic_radius.o ../RunRules/Simulation/objects/c/radiusCpuCode.o -g -O0  -L '/network-raid/opt/maxcompiler-2014.1.1/lib' -lslic -L '/network-raid/opt/maxeleros-2014.1.1/maxeleros/lib' -lmaxeleros -lpthread -lm -lrt 
+Wed 14:58: make[1]: Leaving directory `/home/azaidi/workspace/MaxApp/Classification/CPUCode'
+Wed 14:58: Build completed: Wed Dec 17 14:58:15 GMT 2014
+
+
+Wed 14:58: ########################################## 
+Wed 14:58: Running
+Wed 14:58: ########################################## 
+Wed 14:58: Executing command:
+Wed 14:58: '/home/azaidi/workspace/MaxApp/Classification/RunRules/Simulation/binaries/radius' 
+Wed 14:58: Command output:
+Wed 14:58: Running on CPU.
+Wed 14:58: Starting CPU program, start_t1 = 30000.000
+Wed 14:58: End of CPU program, end_t1 = 80000.000
+Wed 14:58: Running on DFE.
+Wed 14:58: Starting DFE, start_t2 = 100000.000
+Wed 14:58: End of DFE program, end_t2 = 970000.000
+Wed 14:58: Total time taken by CPU: 0.050, total time take by DFE: 0.870
+Wed 14:58: Done.
+Wed 14:58: Process terminated with exit code 0.
