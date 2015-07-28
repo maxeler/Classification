@@ -1,3 +1,28 @@
+/**
+ Copyright (c) 2015, Maxeler Technologies
+ All rights reserved.
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,8 +71,9 @@ void radiusCPU(float *class_centres, float *class_radii2, float *data, float *di
     // For each class, calculate the square euclidean distance between its centre and the given point
     for(int j = 0 ; j < C; j++) {
         // For each dimension, calculate the euclidean term and accumulate
-	for(int i = 0 ; i < N; i++)
-	    dist2[j] = pow(class_centres[i + N*j] - data[i], 2) + dist2[j];
+    	for(int i = 0 ; i < N; i++) {
+    		dist2[j] = pow(class_centres[i + N*j] - data[i], 2) + dist2[j];
+    	}
 	// If euclidean distance is smaller than the class radius, the data point belongs to the class
 	result[j] = (dist2[j] < class_radii2[j])? j : -1;
     }
@@ -88,7 +114,7 @@ int main(void)
     float *out = malloc(P*C*sizeBytes);
 
     // Some memory for the euclidean distances
-    // TODO: This can be not-stored
+    // TODO: This can be not-stored: meaning what exactly?
     float *z = malloc(P*C*sizeBytes);
 
     // Generate random input data
