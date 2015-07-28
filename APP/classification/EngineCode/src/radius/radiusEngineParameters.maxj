@@ -1,3 +1,28 @@
+/**
+ Copyright (c) 2015, Maxeler Technologies
+ All rights reserved.
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 package radius;
 
 import com.maxeler.maxcompiler.v2.build.EngineParameters;
@@ -5,54 +30,42 @@ import com.maxeler.maxcompiler.v2.build.EngineParameters;
 public class radiusEngineParameters extends EngineParameters {
 
     public radiusEngineParameters(String[] args) {
-	super(args);
+    	super(args);
     }
 
-//	Example code to create two engine parameters: 'hasStreamStatus' and
-//	'streamFrequency', plus a derived parameter 'twostreamFrequency'.
-//
-//	A build directory name is constructed based on these parameters and
-//	the default max-file name and target parameters.
-//
+    private static final String s_Cols 		= "cols";		// Nr of columns.
+    private static final String s_Points	= "points";		// Nr of points.
+    private static final String s_Dim		= "dim";		// Nr of dimensions.
+    private static final String s_Classes	= "classes";	// Nr of classes.
+    private static final String s_Roms 		= "roms";		// Nr of ROMs.
 
-//
-//	private static final String s_hasStreamStatus = "hasStreamStatus";
-//	private static final String s_streamFrequency = "streamFrequency";
-//	private static final String s_twofreq = "twostreamFrequency";
-//
-//
-//	@Override
-//	protected void declarations() {
-//		declareParam(s_hasStreamStatus, DataType.BOOL, false);
-//		declareParam(s_streamFrequency, DataType.INT, 150);
-//		declareDerivedParam(s_twofreq, DataType.INT);
-//	}
-//
-//	@Override
-//	protected void deriveParameters() {
-//		deriveParam(s_twofreq, 2 * getStreamFrequency());
-//	}
-//
-//	@Override
-//	protected void validate() {
-//		if (getStreamFrequency() <= 0)
-//			throw new IllegalArgumentException("Stream frequency should be > 0.");
-//	}
-//
-//	public boolean getHasStreamStatus() {
-//		return getParam(s_hasStreamStatus);
-//	}
-//
-//	public int getStreamFrequency() {
-//		return getParam(s_streamFrequency);
-//	}
-//
-//	public int getTwofreq(){
-//		return getParam(s_twofreq);
-//	}
-//
-//	@Override
-//	public String getBuildName() {
-//		return getMaxFileName() + "_" + getTarget() + "_ss" + getHasStreamStatus() + "_sf" + getStreamFrequency();
-//	}
+	@Override
+	protected void declarations() {
+		declareParam(s_Cols,	DataType.INT, 4);
+		declareParam(s_Points,	DataType.INT, 4096);
+		declareParam(s_Dim,		DataType.INT, 4);
+		declareParam(s_Classes, DataType.INT, 256);
+		declareParam(s_Roms,	DataType.INT, 128);
+	}
+
+	public int getCols() {
+		return getParam(s_Cols);
+	}
+
+	public int getPoints() {
+		return getParam(s_Points);
+	}
+
+	public int getDim() {
+		return getParam(s_Dim);
+	}
+
+	public int getClasses() {
+		return getParam(s_Classes);
+	}
+
+	public int getRoms() {
+		return getParam(s_Roms);
+	}
+
 }

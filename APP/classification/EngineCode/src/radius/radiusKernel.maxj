@@ -1,3 +1,28 @@
+/**
+ Copyright (c) 2015, Maxeler Technologies
+ All rights reserved.
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 package radius;
 
 import java.util.ArrayList;
@@ -12,103 +37,142 @@ import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEVar;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
+import com.maxeler.maxcompiler.v2.utils.MathUtils;
 
 
 class radiusKernel extends Kernel {
 
-    radiusKernel(KernelParameters parameters,int cols,int Roms) {
+	private static final String[] s_RomMap = { "mappedRom00",
+						   "mappedRom0",
+						   "mappedRom"
+						};
+	private static final int HUNDREDS 	= 100;
+	private static final int TENS 		= 10;
 
+    /**
+     * @brief Implements the classification kernel.
+     *
+     * Implements the kernels on the DFE engine. See the CPU code for the
+     * original kernel.
+     *
+     * @param COLS 		the number of columns.
+     * @param DIM		the number of dimensions.
+     * @param CLASSES	the number of classes.
+     * @param POINTS	the number of points.
+     * @param ROMS		the number of ROMs.
+     */
+    radiusKernel(KernelParameters parameters,
+    		int COLS,
+    		int DIM,
+    		int CLASSES,
+    		int POINTS,
+    		int ROMS) {
         super(parameters);
 
         //Declare custom type
-	DFEType type = dfeFloat(8,24);
+        DFEType type = dfeFloat(8,24);
 
         //Declare constants for the purpose of data type agreements
-	DFEVar zero = constant.var(type, 0.0);
-	DFEVar address = constant.var(dfeUInt(12),0);
+        DFEVar zero = constant.var(type, 0.0);
 
-        //Declare scalar input of columns in data cluster matrix
-	DFEVar N = io.scalarInput("N", dfeUInt(32));   	
-        //Declare scalar input of rows in data cluster matrix
-        DFEVar C = io.scalarInput("C", dfeUInt(32));   	
-        //Declare scalar input of number of input data points
-        DFEVar P = io.scalarInput("P", dfeUInt(32));   	
-        //Declare scalar input of number of mapped Roms
-        DFEVar R = io.scalarInput("R", dfeUInt(32));   
-	
-	//Declare custom vector types
-	DFEVectorType<DFEVar> inVectorType = new DFEVectorType<DFEVar>(type,cols);
-	DFEVectorType<DFEVar> arrayVectorType = new DFEVectorType<DFEVar>(type,Roms*2);
-	DFEVectorType<DFEVar> radVectorType = new DFEVectorType<DFEVar>(type,Roms/2);
+        // Declare custom vector types
+        DFEVectorType<DFEVar> inVectorType 		=
+        	new DFEVectorType<DFEVar>(type, COLS);
+        DFEVectorType<DFEVar> arrayVectorType	=
+        	new DFEVectorType<DFEVar>(type, ROMS*2);
+        DFEVectorType<DFEVar> radVectorType		=
+        	new DFEVectorType<DFEVar>(type, ROMS/2);
 
-        //Declare complex counter that counts up until every data point from the matrix has been loaded onto the DFE from FMem
-	Count.Params p2 = control.count.makeParams(32).withMax((N*C)/(Roms*2));
-	Counter count2 = control.count.makeCounter(p2);
-	DFEVar cntR = count2.getCount();
+        // Declare complex counter that counts up until every data point from
+        // the matrix has been loaded onto the DFE from FMem
+        Count.Params countParams = control.count.makeParams(CLASSES*DIM/ROMS)
+        	.withMax((DIM*CLASSES)/(ROMS*2));
+        Counter counter = control.count.makeCounter(countParams);
+        DFEVar counterVal = counter.getCount();
 
-	//Inputs of input data point and radii of data clusters
-	DFEVector<DFEVar> inVect = io.input("a", inVectorType, cntR === 0);
+        // Inputs of input data point and radii of data clusters
+        DFEVector<DFEVar> inVect =
+        	io.input("input", inVectorType, counterVal === 0);
 
-	//Declare individual mapped Roms to stream data cluster matrix from, altering their index so they will be read in
-	//the correct order
-	List<Memory<DFEVar>> memories = new ArrayList<Memory<DFEVar>>(Roms + Roms/4);
-	for (int i = 0; i < Roms + Roms/4; ++i) {
-	    // TODO: is there any way NOT harcode the value "8" below? It is P*N/R
-	    Memory<DFEVar> mappedRom = mem.alloc(type,3128);
-	    if (i<10)
-		mappedRom.mapToCPU("mappedRom" + "00" +i);
-	    else
-		if (i<100)
-		    mappedRom.mapToCPU("mappedRom" +"0" +i);
-		else
-		    mappedRom.mapToCPU("mappedRom" + i);
-	    memories.add(mappedRom);
-	}
+        // Declare individual mapped Roms to stream data cluster matrix from,
+        // altering their index so they will be read in the correct order.
+        // For more information about the ROM arragenements see the CPU code.
+        List<Memory<DFEVar>> memories =
+        	new ArrayList<Memory<DFEVar>>(ROMS + ROMS/4);
 
-        //Declare array to load data cluster matrix to
-	DFEVector<DFEVar> data = arrayVectorType.newInstance(this); 	
-        //Declare array for Euclidean distances
-        DFEVector<DFEVar> dist = radVectorType.newInstance(this);   		
-        //Declare array for intermediate values for Euclidean distance
-        DFEVector<DFEVar> s = arrayVectorType.newInstance(this); 
-        //Declare output array of indices and -1s
-        DFEVector<DFEVar> total = radVectorType.newInstance(this); 
-	DFEVector<DFEVar> radcheck = radVectorType.newInstance(this);
+        for (int i = 0; i < ROMS + ROMS/4; i++) {
+        	Memory<DFEVar> mappedRom = mem.alloc(type, CLASSES*DIM/ROMS);
+        	int j = 0;
+        	if (i >= HUNDREDS) { j = 2; } else if (i >= TENS) { j = 1; }
 
-	//Declare offset value of appropriate type to correctly load data center cluster onto array
-	DFEVar place = 2*cntR;
-	DFEVar offset = place.cast(dfeUInt(12));
-
-	//Each mapped Rom loads its first two values into data array, and then the next two values for each subsequent cycle
-	for(int i=0; i < Roms; i++)
-	    for(int j = 0 ; j < 2 ; j++)
-		data[j + 2*i] <== memories.get(i).read(address+offset+j);
-
-
-	//Same initialization method, except for radii
-	for(int i= Roms; i < Roms + Roms/4; i++)
-	    for(int j = 0 ; j < 2 ; j++)
-		radcheck[j + 2*(i-Roms)] <== memories.get(i).read(address+offset+j);
-
-	//Determine the squared difference between each data point in the matrix and its corresponding input element
-        for(int i = 0 ; i < Roms/2 ; i ++)
-	    for(int j = 0 ; j < cols ; j++)
-		s[j + i*cols] <== (inVect[j]-data[j + cols*i])*(inVect[j]-data[j + cols*i]);
-
-        // Compute the sum of each row of squared differences
-	DFEVar runsum = type.newInstance(this);
-        for(int i = 0 ; i < Roms/2 ; i++) {
-	    runsum = zero;
-	    for (int j=0; j<cols; j++) runsum += s[j + cols*i];
-	    dist[i] <== runsum;
+        	mappedRom.mapToCPU(s_RomMap[j] + i);
+		    memories.add(mappedRom);
         }
 
-	DFEVar section = cntR.cast(type);
-	// If the distance squared is less than the cluster radius squared, update output with the index, if not, -1
-	for(int i = 0 ; i < Roms/2 ; i++) total[i] <== dist[i] < radcheck[i] ? section*(Roms/2) + i : -1;
+        // Declare array to load data cluster matrix to
+        DFEVector<DFEVar> data = arrayVectorType.newInstance(this);
+        // Declare array for Euclidean distances
+        DFEVector<DFEVar> dist = radVectorType.newInstance(this);
+        // Declare output array of indices and -1s
+        DFEVector<DFEVar> total = radVectorType.newInstance(this);
+        // Declare array for radii.
+        DFEVector<DFEVar> radcheck = radVectorType.newInstance(this);
 
-	//Output
-	io.output("c",total, radVectorType);
+        // Declare offset value of appropriate type to correctly load data
+        // center cluster onto array.
+        DFEVar place = counterVal*2;
+        // This offset is used to determine the location in the column of the
+        // row. The offset width is dependent on the number of classes, the
+        // dimension and the number of ROMs.
+        DFEVar offset = place.cast(dfeUInt(
+        		MathUtils.bitsToAddress( (CLASSES*DIM/ROMS) )));
+
+        // Each mapped ROM loads its first two values into data array,
+        // and then the next two values for each subsequent cycle
+        for(int i=0; i < ROMS; i++) {
+        	for(int j = 0 ; j < 2 ; j++) {
+        		data[j + 2*i] <== memories.get(i).read(offset+j);
+        	}
+        }
+
+		// Read in the radii.
+		for(int i = ROMS; i < ROMS + ROMS/4; i++) {
+		    for(int j = 0 ; j < 2 ; j++) {
+		    	radcheck[j + 2*(i-ROMS)] <== memories.get(i).read(offset+j);
+		    }
+		}
+
+		/* Uncomment if you need the intermediate values for Euclidean
+		 * distance.
+		 *
+		 * Declare array for intermediate values for Euclidean distance
+                 * DFEVector<DFEVar> s = arrayVectorType.newInstance(this);
+		 *
+		 * for(int i = 0 ; i < Roms/2 ; i ++)
+		 *	    for(int j = 0 ; j < cols ; j++)
+		 *		s[j + i*cols] <== (inVect[j]-data[j + cols*i])*(inVect[j]-data[j + cols*i]);
+		 */
+
+	    // Compute the sum of each row of squared differences
+		DFEVar runsum = type.newInstance(this);
+	    for(int i = 0 ; i < ROMS/2 ; i++) {
+	     	runsum = zero;
+		    for (int j=0; j<COLS; j++) {
+				// Determine the squared difference between each data point in the
+				// matrix and its corresponding input element
+		    	runsum += (inVect[j]-data[j + COLS*i])*(inVect[j]-data[j + COLS*i]);
+		    }
+		    dist[i] <== runsum;
+	    }
+
+		DFEVar section = counterVal.cast(type);
+		// If the distance squared is less than the cluster radius squared,
+		// update output with the index, if not, -1
+		for(int i = 0 ; i < ROMS/2 ; i++) {
+			total[i] <== dist[i] < radcheck[i] ? section*(ROMS/2) + i : -1;
+		}
+
+		io.output("output",total, radVectorType);
     }
 
 }
