@@ -1,0 +1,33 @@
+# Ignore editor temporary files
+*~
+*.s[a-w][a-z]
+*.un~
+\#*\#
+.\#*
+
+# Ignore all java .class files
+*.class
+
+# Ignore the RunRules/<RunRule>/binaries folder
+binaries
+
+# Ignore the RunRules/<RunRule>/maxfiles folder
+maxfiles
+
+# Ignore the RunRules/<RunRule>/objects folder
+objects
+
+# Ignore all generated files in the RunRules/<RunRule>/include
+# folder except for the Maxfiles.h
+include
+!Maxfiles.h
+
+# Ignore RunRules/<RunRule>/.maxcompiler-activity.be
+.maxcompiler-activity.be
+
+# Ignore RunRule's log files
+build.log
+*_cmd.log
+
+# Ignore application output files
+*.out
