@@ -62,7 +62,7 @@ include/radius.h: maxfiles/radius.h
 maxfiles/radius.max maxfiles/radius.h:
 # Ensure that maxfiles do not get build by this Makefile when running in MaxIDE
 ifndef MAXIDE_RUN
-	test -f $@ || env  MAX_BUILDPARAMS=" DFEModel=ISCA  target=DFE  maxFileName=radius MPPREndCT='8' MPPRThreads='4' "  ant -v -f radius.xml
+	test -f $@ || env  MAX_BUILDPARAMS=" DFEModel=ISCA  target=DFE  maxFileName=radius MPPREndCT='8' MPPRThreads='1' "  ant -v -f radius.xml
 else
 	test -f $@ || ( echo 'Maxfile unavailable: $@' >/dev/stderr ; exit 1 )
 endif

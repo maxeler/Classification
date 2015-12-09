@@ -5,7 +5,7 @@
 <simulation enabled="false"/>
 <enableMPCX enabled="false"/>
 <programArgument argument="MPPREndCT" value="8"/>
-<programArgument argument="MPPRThreads" value="4"/>
+<programArgument argument="MPPRThreads" value="1"/>
 </common>
 <maxFiles>
 <maxFile buildName="radius" buildOrUseExisting="build">
