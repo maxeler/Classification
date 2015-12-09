@@ -15,16 +15,16 @@
         <isset property="env.CLASSPATH"/>
     </condition>
     <target name="clean">
-        <delete dir="../RunRules/DFE/dist"/>
+        <delete dir="../RunRules/Isca/dist"/>
     </target>
     <target name="build" depends="clean">
         <fail unless="env.MAXCOMPILERDIR" message="MAXCOMPILERDIR environment variable is not defined"/>
-        <mkdir dir="../RunRules/DFE/dist"/>
-        <mkdir dir="../RunRules/DFE/dist/bin"/>
-        <copy includeemptydirs="false" todir="../RunRules/DFE/dist/bin">
+        <mkdir dir="../RunRules/Isca/dist"/>
+        <mkdir dir="../RunRules/Isca/dist/bin"/>
+        <copy includeemptydirs="false" todir="../RunRules/Isca/dist/bin">
             <fileset dir="src" excludes="**/*.uad, **/*.ucd, **/*.uld, **/*.upd, **/*.udd, **/*.uod, **/*.usd, **/*.utd, **/*.uud, **/*.odd, **/*.ead, **/*.ecd, **/*.eld, **/*.epd, **/*.edd, **/*.eod, **/*.esd, **/*.etd, **/*.eud, **/*.urd*.uml, **/*.ecore, **/*.launch, **/*.java, **/*.maxj, **/package.html"/>
         </copy>
-        <maxjcompiler srcdir="src" destdir="../RunRules/DFE/dist/bin" debug="true" debuglevel="lines,vars,source" source="1.6" target="1.6" failonerror="true">
+        <maxjcompiler srcdir="src" destdir="../RunRules/Isca/dist/bin" debug="true" debuglevel="lines,vars,source" source="1.6" target="1.6" failonerror="true">
             <classpath>
                 <pathelement path="${maxcompilerdirpath}"/>
                 <pathelement path="${EnvClassPath}"/>
