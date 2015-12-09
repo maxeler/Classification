@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Final2_Radius_EngineCode_build_script" default="all" basedir="../../EngineCode">
+<project name="classification_EngineCode_build_script" default="all" basedir="../../EngineCode">
     <property environment="env"/>
     <taskdef name="maxjcompiler" classname="org.eclipse.jdt.core.ant.taskdef.MaxjTask" classpath="${env.MAXCOMPILERDIR}/lib/MaxIDE/ecj.jar" onerror="ignore"/>
     <condition property="maxcompilerdirpath" value="${env.MAXCOMPILERJCP}">

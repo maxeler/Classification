@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Final2_Radius_EngineCode_run_script" default="all" basedir="../../EngineCode">
+<project name="classification_EngineCode_run_script" default="all" basedir="../../EngineCode">
     <property environment="env"/>
     <condition property="maxcompilerdirpath" value="${env.MAXCOMPILERJCP}">
         <isset property="env.MAXCOMPILERJCP"/>
