@@ -1,0 +1,108 @@
+/**
+ Copyright (c) 2015, Maxeler Technologies
+ All rights reserved.
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+package radius;
+import com.maxeler.maxcompiler.v2.managers.BuildConfig;
+import com.maxeler.maxcompiler.v2.managers.BuildConfig.Effort;
+import com.maxeler.maxcompiler.v2.managers.custom.CustomManager;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.KernelBlock;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.CPUTypes;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.EngineInterface;
+
+
+public class radiusManager extends CustomManager {
+
+    private static final String kernelName = "radiusKernel";
+    private static radiusEngineParameters params;
+
+    public radiusManager(radiusEngineParameters engineParameters) {
+
+    	super(engineParameters);
+
+    	KernelBlock block = addKernel(
+    			// Please note that the engine parameters are defined in
+    			// radiusEngineParameters.maxj.
+    			new radiusKernel(
+    					makeKernelParameters(kernelName),
+    					engineParameters.getCols(),
+    					engineParameters.getDim(),
+    					engineParameters.getClasses(),
+    					engineParameters.getPoints(),
+    					engineParameters.getRoms()));
+
+    	for (String inputName: block.getAllInputs()) {
+    		block.getInput(inputName).connect(addStreamFromCPU(inputName));
+    	}
+
+    	for (String outputName: block.getAllOutputs()) {
+    		addStreamToCPU(outputName).connect(block.getOutput(outputName));
+    	}
+
+    	createSLiCinterface(modeDefault());
+
+    	configBuild(engineParameters);
+    }
+
+    private static EngineInterface modeDefault() {
+    	EngineInterface engineInterface = new EngineInterface();
+    	CPUTypes type = CPUTypes.FLOAT;
+    	int size = type.sizeInBytes();
+
+    	engineInterface.setTicks(kernelName,
+    			params.getPoints() * ((params.getDim() * params.getClasses()) /
+    					(params.getRoms() * 2)));
+    	engineInterface.setStream("input",  type, params.getDim() *
+    			params.getPoints() * size);
+    	engineInterface.setStream("output", type, params.getClasses() *
+    			params.getPoints() * size);
+
+    	return engineInterface;
+    }
+
+    private void configBuild(radiusEngineParameters params) {
+    	BuildConfig buildConfig = getBuildConfig();
+    	buildConfig.setMPPRCostTableSearchRange(params.getMPPRStartCT(),
+    			params.getMPPREndCT());
+    	buildConfig.setMPPRParallelism(params.getMPPRThreads());
+    	buildConfig.setMPPRRetryNearMissesThreshold(
+    			params.getMPPRRetryThreshold());
+    	buildConfig.setBuildEffort(Effort.LOW);
+    }
+
+    public static void main(String[] args) {
+    	params = new radiusEngineParameters(args);
+    	radiusManager manager = new radiusManager(params);
+
+    	manager.addMaxFileConstant("COLS", 		params.getCols());
+    	manager.addMaxFileConstant("DIM", 		params.getDim());
+    	manager.addMaxFileConstant("CLASSES", 	params.getClasses());
+    	manager.addMaxFileConstant("POINTS", 	params.getPoints());
+    	manager.addMaxFileConstant("ROMS", 		params.getRoms());
+    	manager.getBuildConfig().setBuildEffort(Effort.HIGH);
+
+    	manager.build();
+    }
+
+}
