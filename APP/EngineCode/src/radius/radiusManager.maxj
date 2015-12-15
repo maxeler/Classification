@@ -100,6 +100,7 @@ public class radiusManager extends CustomManager {
     	manager.addMaxFileConstant("CLASSES", 	params.getClasses());
     	manager.addMaxFileConstant("POINTS", 	params.getPoints());
     	manager.addMaxFileConstant("ROMS", 		params.getRoms());
+    	manager.getBuildConfig().setBuildEffort(Effort.HIGH);
 
     	manager.build();
     }
