@@ -1,0 +1,7 @@
+{
+    "shortcuts": [],
+    "actionBar": {
+	"templateFile" : ".webide.d/action-bar.template.html",
+	"addonFile" : ".webide.d/addon.js"
+    }
+}
