@@ -1,0 +1,250 @@
+<nav-bar>
+  <button class="btn btn-danger navbar-btn"
+          ng-click="actionBar.goBack()"
+          tooltip="Go back to project expolorer"
+          tooltip-placement="bottom"
+          tooltip-popup-delay="500">
+    <i class="fa fa-backward fa-lg"></i>
+  </button>
+
+  <div class="dropdown"
+       uib-dropdown
+       ng-style="{ display : 'inline', position : 'relative' }">
+    <button class="btn project-button navbar-btn uib-dropdown-toggle"
+            uib-dropdown-toggle
+            tooltip="Switch project"
+            tooltip-placement="bottom"
+            tooltip-popup-delay="500">
+      Project: {{ actionBar.project.currentProject.projectname }}
+      <i class="fa fa-retweet fa-lg" ></i>
+    </button>
+    <ul class="uib-dropdown-menu"
+        ng-style="{ marginTop: '15px'}">
+      <li ng-repeat="project
+                     in actionBar.user.projects
+                     track by project.projectname">
+        <a ng-click="actionBar.openProject({ projectname : project.projectname })">
+          <i class="fa fa-archive"></i> {{ project.projectname }}
+        </a>
+      </li>
+    </ul>
+  </div>
+  &nbsp;
+  <div class="dropdown"
+       uib-dropdown
+       ng-style="{ display : 'inline', position : 'relative' }">
+    <button class="btn navbar-btn uib-dropdown-toggle window-button"
+            uib-dropdown-toggle
+            tooltip="Windows"
+            tooltip-placement="bottom"
+            tooltip-popup-delay="500">
+      <i class="fa fa-bullseye fa-lg"></i>
+    </button>
+    <ul class="uib-dropdown-menu"
+        ng-style="{ marginTop: '15px'}">
+      <li>
+        &nbsp;<b>Active</b>
+      </li>
+      <li ng-repeat="file in actionBar.setToArray(actionBar.files.files)">
+        <a ng-click="actionBar.openFile({ path : file.filename })">
+          <i class="fa fa-file-text"></i> {{ file.filename }}
+        </a>
+      </li>
+      <li ng-repeat="folder in actionBar.folders">
+        <a ng-click="actionBar.openFolder({ dirpath : folder.dirpath })">
+          <i class="fa fa-folder"></i> {{ folder.dirpath }}
+        </a>
+      </li> 
+      <li ng-repeat="image in actionBar.setToArray(actionBar.images.files)">
+        <a ng-click="actionBar.openFile({ path : image.filename })">
+          <i class="fa fa-file-image-o"></i> {{ image.filename }}
+        </a>
+      </li>
+      <li ng-repeat="terminal in actionBar.setToArray(actionBar.terminals)">
+        <a ng-click="actionBar.openTerminal({ name : terminal.name })">
+          <i class="fa fa-terminal"></i> Terminal - {{ terminal.name }}
+        </a>
+      </li>  
+      <li ng-repeat="pdf in actionBar.setToArray(actionBar.pdfs)">
+        <a ng-click="actionBar.openFile({ path : pdf.title })">
+          <i class="fa fa-file-pdf-o"></i> {{ pdf.title }}
+        </a>
+      </li>
+      <li ng-repeat="csv in actionBar.setToArray(actionBar.csvFiles.files)">
+        <a ng-click="actionBar.openFile({ path : csv.filename })">
+          <i class="fa fa-file-excel-o"></i> {{ csv.filename }}
+        </a>
+      </li>
+      <li ng-repeat="browser in actionBar.setToArray(actionBar.browsers)">
+        <a ng-click="actionBar.openBrowser({ title : browser.title, path : browser.path })">
+          <i class="fa fa-file-code-o"></i> {{ browser.title }}
+        </a>
+      </li>
+      <li ng-if="actionBar.recentlyClosed.length > 0">
+        &nbsp;<b>Recently Closed</b>
+      </li>
+      <li ng-repeat="item in actionBar.recentlyClosed">
+        <a ng-click="actionBar.open(item.type, item.path, item.name)">
+          <i ng-class="{ 'fa fa-file-image-o' : item.type == 'image',
+                       'fa fa-terminal'       : item.type == 'terminal',
+                       'fa fa-folder'         : item.type == 'folder',
+                       'fa fa-file-pdf-o'     : item.type == 'pdf',
+                       'fa fa-file-excel-o'   : item.type == 'csv',
+                       'fa fa-file-text'      : item.type == 'editor',
+                       'fa fa-file-code-o'    : item.type == 'browser'}">
+          </i> {{ item.name }}
+        </a>
+      </li>
+    </ul>
+  </div>
+  
+  <button class="btn save-button navbar-btn"
+          tooltip="Save workspace"
+          tooltip-placement="bottom"
+          tooltip-popup-delay="500"
+          ng-click="actionBar.openSaveWorkspaceDialog()">
+    <i class="fa fa-floppy-o fa-lg"></i>
+  </button>
+  
+  <a class="btn btn-danger navbar-btn"
+     tooltip="Delete shortcuts"
+     tooltip-placement="bottom"
+     tooltip-popup-delay="500"
+     ng-click="actionBar.removeSelectedShortcuts()"
+     ng-disabled="actionBar.selectedShortcuts.size == 0">
+    <i class="fa fa-trash-o fa-lg"></i>
+  </a>
+  &nbsp;
+  <div class="dropdown"
+       uib-dropdown
+       ng-style="{ display : 'inline', position : 'relative' }">
+    <button class="btn btn-primary navbar-btn uib-dropdown-toggle"
+            uib-dropdown-toggle
+            tooltip="Source Code"
+            tooltip-placement="bottom"
+            tooltip-popup-delay="500"
+            style="margin-right: 0px;">
+      <i class="fa fa-archive fa-lg"></i>
+    </button>
+    <ul class="uib-dropdown-menu"
+        ng-style="{ marginTop: '15px'}">
+      <li ng-repeat="choice in actionBar.project.getSubDirs('.')">
+        <a ng-click="actionBar.openFolder({ dirpath : choice })">
+          <i class="fa fa-folder"></i> {{ choice }}
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="dropdown"
+       ng-style="{ display : 'inline', position : 'relative' }">
+    <button class="btn code-button navbar-btn "
+            tooltip="CPU Code & Kernel Code"
+            tooltip-placement="bottom"
+            tooltip-popup-delay="500"
+            style="margin-right: 0px;"
+            ng-click="actionBar.openFile({
+                      path   : actionBar.cpuFilePath(),
+                      x      : 0,
+                      y      : 0,
+                      width  : actionBar.page.browserWidth/2 - 5,
+                      height : actionBar.page.browserHeight
+                      });
+                      actionBar.openFile({
+                      path   : actionBar.mainKernelFilePath(),
+                      x      : actionBar.page.browserWidth/2 + 5,
+                      y      : 0,
+                      width  : actionBar.page.browserWidth/2 - 5,
+                      height : actionBar.page.browserHeight
+                      })">
+      <i class="fa fa-shield fa-lg"></i>
+    </button>
+  </div>
+
+  <div class="dropdown"
+       uib-dropdown
+       ng-style="{ display : 'inline', position : 'relative' }">
+    <button class="btn build-button navbar-btn uib-dropdown-toggle"
+            uib-dropdown-toggle
+            tooltip="Build & Run"
+            tooltip-placement="bottom"
+            tooltip-popup-delay="500"
+            style="margin-right: 0px;">
+      <i class="fa fa-wrench fa-lg"></i>
+    </button>
+    <ul class="uib-dropdown-menu" ng-style="{ marginTop: '15px'}">
+      <li>
+        <a ng-click="actionBar.make('APP/CPUCode', 'maxcompiler', 'RUNRULE=Simulation')">
+          <i class="fa fa-rocket"></i> BUILD
+        </a>
+      </li>
+      <li>
+        <a ng-click="actionBar.make('APP/CPUCode', 'maxcompiler', 'RUNRULE=Simulation runsim')">
+          <i class="fa fa-rocket"></i> RUN
+        </a>
+      </li>
+      <li >
+        <a ng-click="actionBar.openRemoteModal()">
+          <i class="fa fa-rocket"></i> REMOTE
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!--
+      <button class="btn make-kind-button navbar-btn"
+              tooltip="Toggle between Simulation and DFE"
+              tooltip-placement="bottom"
+              tooltip-popup-delay="500"
+              ng-click="actionBar.makeKind = actionBar.makeKind === 'DFE' ? 'Simulation' : 'DFE'">
+        <span ng-class="actionBar.makeKind === 'DFE' ? 'make-kind-active' : 'make-kind-inactive'">DFE</span>
+        /
+        <span ng-class="actionBar.makeKind === 'Simulation' ? 'make-kind-active' : 'make-kind-inactive'">Simulation</span>
+        <i class="fa fa-lg"
+           ng-class="actionBar.makeKind === 'Simulation' ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+      </button>
+      -->
+
+  <button class="btn btn-warning navbar-btn"
+          tooltip="View Graphs"
+          tooltip-placement="bottom"
+          tooltip-popup-delay="500"
+          style="margin-left: 5px;"
+          ng-click="actionBar.openFolder({dirpath : 'Graphs'})">
+    <i class="fa fa-eye fa-lg"></i>
+  </button>
+
+  <button class="btn btn-success navbar-btn"
+          tooltip="Start terminal"
+          tooltip-placement="bottom"
+          tooltip-popup-delay="500"
+          ng-init="terminalNo = 1"
+          ng-click="actionBar.openTerminal({ name : terminalNo}); terminalNo = terminalNo + 1">
+    <i class="fa fa-terminal fa-lg"></i>
+  </button>
+
+  <div class="dropdown"
+       uib-dropdown
+       ng-style="{ display : 'inline', position : 'relative' }">
+    <button class="btn btn-info navbar-btn uib-dropdown-toggle"
+            uib-dropdown-toggle
+            tooltip="Documentation"
+            tooltip-placement="bottom"
+            tooltip-popup-delay="500">
+      <i class="fa fa-book fa-lg"></i>
+    </button>
+    <ul class="uib-dropdown-menu"
+        ng-style="{ marginTop: '15px'}">
+      <li ng-repeat="doc in actionBar.pdfDocumentation">
+        <a ng-click="actionBar.openPDF({title: doc, path : actionBar.documentationLocation + doc})">
+          <i class="fa fa-file-pdf-o"></i> {{ doc }}
+        </a>
+      </li>
+      <li ng-repeat="api in actionBar.htmlDocumentation">
+        <a ng-click="actionBar.openBrowser({title: api, path : actionBar.documentationLocation + api + '/index.html'})">
+          <i class="fa fa-file-code-o"></i> {{ api }}
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav-bar>
